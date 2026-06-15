@@ -37,3 +37,8 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=False, host='0.0.0.0', port=5000, threaded=True, use_reloader=False)
+
+
+# 生产环境自动建表（PythonAnywhere 等 WSGI 部署不会触发 __main__）
+with app.app_context():
+    db.create_all()
