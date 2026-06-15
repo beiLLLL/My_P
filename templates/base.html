@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IELTS Speaking Sim{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'><text y='32' font-size='32'>🎓</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <span class="brand-icon">🎓</span>
+                <span class="brand-text">IELTS <strong>Speaking</strong></span>
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" onclick="setLang('zh')">中</button>
+                    <span class="lang-sep">|</span>
+                    <button class="lang-btn" onclick="setLang('en')">EN</button>
+                </div>
+                {% if current_user.is_authenticated %}
+                <span class="text-muted">{{ current_user.username }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary btn-sm" data-lang="logout">Logout</a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-sm" data-lang="login_btn">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show flash-alert" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 全局多语言系统 -->
+    <script>
+    const LANG_DATA = {
+        logout:     { zh: '退出登录', en: 'Logout' },
+        login_btn:  { zh: '登录', en: 'Login' },
+        // 首页
+        hero_title1: { zh: 'IELTS 口语', en: 'IELTS Speaking' },
+        hero_title2: { zh: 'AI 模拟练习', en: 'Practice Simulator' },
+        hero_desc:   { zh: '随时随地与 AI 考官练习。真实考试格式 · 即时反馈 · 分数估算', en: 'Practice with an AI examiner anytime, anywhere. Realistic test format · Instant feedback · Band score estimate' },
+        hero_feat:   { zh: '🎯 全真模拟 · 📊 AI 估分 · 🔄 多考官 · 📈 难度分级', en: '🎯 Parts 1-3 · 📊 Band Score · 🔄 Multi-Examiner · 📈 Difficulty Levels' },
+        start_sim:   { zh: '开始模拟', en: 'Start Simulation' },
+        feat1_title: { zh: '全真考试格式', en: 'Realistic Exam Format' },
+        feat1_desc:  { zh: '完整的 Part 1-3 模拟，专业 AI 考官提问', en: 'Full Parts 1-3 simulation with professional AI examiner' },
+        feat2_title: { zh: '雅思分数估算', en: 'Band Score Estimate' },
+        feat2_desc:  { zh: '即时获取反馈和雅思评分参考', en: 'Get instant feedback and estimated IELTS band score' },
+        feat3_title: { zh: '多级别练习', en: 'Multi-Level Practice' },
+        feat3_desc:  { zh: '简单 / 中等 / 困难 —— 按自己的节奏练习', en: 'Easy / Medium / Hard — practice at your own pace' },
+        tech_stack:  { zh: '技术栈', en: 'Tech Stack' },
+        // 登录页
+        login_tab:   { zh: '登录', en: 'Login' },
+        register_tab:{ zh: '注册', en: 'Register' },
+        username:    { zh: '用户名', en: 'Username' },
+        password:    { zh: '密码', en: 'Password' },
+        confirm_pwd: { zh: '确认密码', en: 'Confirm Password' },
+        register_btn:{ zh: '注册', en: 'Register' },
+        // 考试页（非考试内容）
+        exam_title:  { zh: '🎓 雅思口语考试', en: '🎓 IELTS Speaking Test' },
+        ready:       { zh: '准备就绪', en: 'Ready' },
+        in_progress: { zh: '考试中', en: 'In Progress' },
+        completed:   { zh: '已完成', en: 'Completed' },
+        generating:  { zh: '生成反馈中...', en: 'Generating feedback...' },
+        part1:       { zh: '第一部分', en: 'Part 1' },
+        part2:       { zh: '第二部分', en: 'Part 2' },
+        part3:       { zh: '第三部分', en: 'Part 3' },
+        difficulty:  { zh: '难度', en: 'Difficulty' },
+        examiner:    { zh: '更换考官', en: 'Examiner' },
+        exit_panel:  { zh: '退出模拟', en: 'Exit' },
+        start_btn:   { zh: '我已准备好，开始模拟 🎙️', en: "I'm Ready, Start Simulation 🎙️" },
+        end_btn:     { zh: '⏹️ 结束考试', en: '⏹️ End Test' },
+        restart_btn: { zh: '🔄 重新开始', en: '🔄 Restart' },
+        feedback_title: { zh: '📊 考试反馈', en: '📊 Exam Feedback' },
+        tip_label:   { zh: '改进建议', en: 'Tip' },
+        chat_placeholder: { zh: '输入你的回答...', en: 'Type your response...' },
+    };
+
+    let currentLang = 'zh';
+
+    function t(key) {
+        return (LANG_DATA[key] && LANG_DATA[key][currentLang]) || key;
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        document.querySelectorAll('.lang-btn').forEach(b => {
+            b.classList.toggle('active', b.textContent.trim() === (lang === 'zh' ? '中' : 'EN'));
+        });
+        document.querySelectorAll('[data-lang]').forEach(el => {
+            const k = el.getAttribute('data-lang');
+            if (k === 'chat_placeholder') {
+                el.placeholder = t(k);
+            } else if (LANG_DATA[k]) {
+                el.textContent = t(k);
+            }
+        });
+        // 触发页面级回调
+        if (typeof onLangChange === 'function') onLangChange(lang);
+    }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="auth-card">
+                <ul class="nav nav-pills auth-tabs mb-4" role="tablist">
+                    <li class="nav-item w-50">
+                        <button class="nav-link active w-100" data-bs-toggle="tab" data-bs-target="#tab-login" data-lang="login_tab">登录</button>
+                    </li>
+                    <li class="nav-item w-50">
+                        <button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#tab-register" data-lang="register_tab">注册</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tab-login">
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            <div class="mb-3">
+                                <label class="form-label" data-lang="username">用户名</label>
+                                <input type="text" name="username" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" data-lang="password">密码</label>
+                                <input type="password" name="password" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg" data-lang="login_tab">登录</button>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="tab-register">
+                        <form method="POST" action="{{ url_for('auth.register') }}">
+                            <div class="mb-3">
+                                <label class="form-label" data-lang="username">用户名</label>
+                                <input type="text" name="username" class="form-control" required minlength="3">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" data-lang="password">密码</label>
+                                <input type="password" name="password" class="form-control" required minlength="6">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" data-lang="confirm_pwd">确认密码</label>
+                                <input type="password" name="confirm" class="form-control" required minlength="6">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg" data-lang="register_btn">注册</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

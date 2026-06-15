@@ -1,0 +1,433 @@
+/* ═══════════════════════════════════════════
+   IELTS Speaking Sim — Clean & Professional
+   ═══════════════════════════════════════════ */
+
+:root {
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --primary-dark: #1d4ed8;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --danger: #dc2626;
+    --bg: #f8fafc;
+    --bg-white: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.08);
+    --radius: 16px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+}
+
+/* ─── 导航栏 ─── */
+.navbar {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 0;
+}
+.brand-icon { font-size: 1.4rem; margin-right: 0.4rem; }
+.brand-text { font-size: 1.2rem; font-weight: 600; color: var(--text); }
+.brand-text strong { color: var(--primary); }
+
+/* ─── Flash ─── */
+.flash-container { position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 360px; }
+.flash-alert { box-shadow: var(--shadow-lg); border-radius: 12px; }
+
+/* ─── Hero 首页 ─── */
+.hero {
+    padding: 6rem 0 4rem;
+    background: linear-gradient(180deg, #eff6ff 0%, var(--bg) 100%);
+}
+.hero-title {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    letter-spacing: -1px;
+}
+.hero-desc {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+.hero-features { color: var(--text-muted); font-size: 0.95rem; }
+.hero-features .sep { margin: 0 0.6rem; color: #cbd5e1; }
+.start-btn { font-weight: 600; letter-spacing: 0.5px; border-radius: 14px; transition: all 0.3s; }
+.start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(37,99,235,0.25); }
+
+/* ─── 特性卡片 ─── */
+.feature-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 1.5rem;
+    height: 100%;
+    transition: all 0.3s;
+}
+.feature-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+.feature-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.feature-card h5 { font-weight: 700; margin-bottom: 0.5rem; }
+.feature-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+
+/* ─── 登录 ─── */
+.auth-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-lg);
+}
+.auth-tabs .nav-link { color: var(--text-muted); border-radius: 10px; font-weight: 500; }
+.auth-tabs .nav-link.active { background: var(--primary); color: white; }
+.form-control, .form-select {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.form-label { font-weight: 600; color: var(--text); font-size: 0.85rem; margin-bottom: 0.3rem; }
+
+/* ─── 语言切换 ─── */
+.lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    border-radius: 20px;
+    padding: 2px;
+    gap: 0;
+}
+.lang-btn {
+    border: none;
+    background: transparent;
+    padding: 0.3rem 0.8rem;
+    border-radius: 18px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+.lang-btn.active {
+    background: var(--primary);
+    color: white;
+}
+.lang-sep {
+    color: #cbd5e1;
+    font-size: 0.8rem;
+}
+
+/* ═══════════════════════════════════════════
+   考试页面
+   ═══════════════════════════════════════════ */
+
+.exam-container {
+    height: calc(100vh - 66px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ─── 顶部栏 ─── */
+.exam-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+}
+.exam-title { font-weight: 700; font-size: 1.1rem; }
+.exam-status {
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-idle { background: #f1f5f9; color: var(--text-muted); }
+.status-active { background: #dcfce7; color: var(--success); animation: statusPulse 2s infinite; }
+.status-done { background: #dbeafe; color: var(--primary); }
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ─── 进度条 ─── */
+.progress-bar-custom {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+.progress-step {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.step-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    border: 2px solid #cbd5e1;
+    transition: all 0.3s;
+}
+.progress-step.active .step-dot {
+    background: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 8px rgba(37,99,235,0.4);
+}
+.progress-step.done .step-dot {
+    background: var(--success);
+    border-color: var(--success);
+}
+.step-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    transition: all 0.3s;
+}
+.progress-step.active .step-label { color: var(--primary); }
+.progress-step.done .step-label { color: var(--success); }
+.progress-line {
+    width: 30px;
+    height: 2px;
+    background: #e2e8f0;
+    margin: 0 0.5rem;
+    transition: all 0.3s;
+}
+.progress-step.done + .progress-line { background: var(--success); }
+
+/* ─── 布局 ─── */
+.exam-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ─── 左侧控制面板 ─── */
+.control-panel {
+    width: 260px;
+    padding: 1rem;
+    border-right: 1px solid var(--border);
+    background: var(--bg-white);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+}
+.control-card {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.75rem;
+    text-align: center;
+}
+.control-icon { font-size: 1.3rem; margin-bottom: 0.2rem; }
+.control-label { font-weight: 600; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+.control-select { font-size: 0.8rem; border-radius: 8px; }
+
+/* 考官缩略图 —— 4列网格 */
+.examiner-thumbs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+}
+.examiner-thumb {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    position: relative;
+}
+.examiner-thumb:hover {
+    border-color: var(--primary);
+    transform: scale(1.08);
+}
+.examiner-thumb.active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+    transform: scale(1.05);
+}
+.examiner-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ─── 中间考官/对话区 ─── */
+.exam-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    position: relative;
+}
+
+/* 考官展示 */
+.examiner-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+.examiner-photo-wrapper {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s;
+}
+.examiner-photo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.examiner-name { font-weight: 700; font-size: 1.5rem; margin: 0; }
+.examiner-title {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 0;
+    max-width: 460px;
+    line-height: 1.6;
+    padding: 0 1.5rem;
+}
+
+/* 对话区 */
+.chat-area {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* 消息气泡 */
+.message { display: flex; gap: 0.6rem; align-items: flex-start; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.message.user { flex-direction: row-reverse; }
+
+.message-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.message-bubble {
+    max-width: 72%;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0.8rem 1.2rem;
+}
+.message.user .message-bubble {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+.message-content { line-height: 1.7; font-size: 0.95rem; }
+
+/* ─── 底部操作区 ─── */
+.exam-actions {
+    padding: 1.5rem;
+    text-align: right;
+    border-top: 1px solid var(--border);
+    background: var(--bg-white);
+}
+.start-exam-btn {
+    font-size: 1.15rem;
+    font-weight: 600;
+    padding: 0.85rem 2.5rem;
+    border-radius: 14px;
+    transition: all 0.3s;
+}
+.start-exam-btn:hover { transform: translateY(-2px); }
+
+.exam-input-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.restart-btn {
+    flex-shrink: 0;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+.chat-input-group { max-width: 700px; margin-left: auto; flex: 1; }
+.chat-input-group .form-control { border-radius: 12px 0 0 12px; }
+.chat-input-group .btn { border-radius: 0; }
+.chat-input-group .btn:last-child { border-radius: 0 12px 12px 0; }
+
+@media (max-width: 768px) {
+    .exam-input-row { flex-direction: column; gap: 0.5rem; }
+    .restart-btn { width: 100%; }
+}
+
+/* ─── 反馈弹窗 ─── */
+.modal-content { border-radius: var(--radius); border: none; box-shadow: var(--shadow-lg); }
+.modal-header { border-bottom: 1px solid var(--border); }
+.score-circle {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 0 30px rgba(37,99,235,0.3);
+}
+.tip-box {
+    background: #fef3c7;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+/* ─── 响应式 ─── */
+@media (max-width: 768px) {
+    .hero-title { font-size: 2rem; }
+    .control-panel { width: 100%; flex-direction: row; overflow-x: auto; gap: 0.5rem; }
+    .control-card { min-width: 120px; flex-shrink: 0; }
+    .examiner-thumbs { grid-template-columns: repeat(4, 40px); justify-content: center; }
+    .exam-layout { flex-direction: column; }
+    .exam-actions { text-align: center; }
+    .chat-input-group { max-width: 100%; }
+}

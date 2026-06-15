@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+{% block title %}IELTS Exam{% endblock %}
+
+{% block content %}
+<div class="exam-container">
+
+    <!-- 顶部状态栏 -->
+    <div class="exam-topbar">
+        <span class="exam-title" data-lang="exam_title">🎓 雅思口语考试</span>
+        <div class="d-flex align-items-center gap-3">
+            <div class="progress-bar-custom" id="progressBar">
+                <div class="progress-step active" data-part="1">
+                    <span class="step-dot"></span>
+                    <span class="step-label" data-lang="part1">第一部分</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-part="2">
+                    <span class="step-dot"></span>
+                    <span class="step-label" data-lang="part2">第二部分</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-part="3">
+                    <span class="step-dot"></span>
+                    <span class="step-label" data-lang="part3">第三部分</span>
+                </div>
+            </div>
+            <span id="examStatus" class="exam-status status-idle" data-lang="ready">准备就绪</span>
+        </div>
+    </div>
+
+    <div class="exam-layout">
+        <!-- 左侧控制面板 -->
+        <div id="controlPanel" class="control-panel">
+            <div class="control-card">
+                <div class="control-icon">📊</div>
+                <div class="control-label" data-lang="difficulty">难度</div>
+                <select id="difficultySelect" class="form-select control-select" onchange="updateDiffLabel()">
+                    <option value="easy" data-zh="🙆🏿 黑人" data-en="🙆🏿 Black">🙆🏿 黑人</option>
+                    <option value="medium" selected data-zh="🙋🏻 白人" data-en="🙋🏻 White">🙋🏻 白人</option>
+                    <option value="hard" data-zh="🙎 亚裔" data-en="🙎 Asian">🙎 亚裔</option>
+                </select>
+            </div>
+            <div class="control-card">
+                <div class="control-icon">👤</div>
+                <div class="control-label" data-lang="examiner">更换考官</div>
+                <div class="examiner-thumbs">
+                    {% for key, ex in examiners.items() %}
+                    <div class="examiner-thumb {% if key == 'kobe' %}active{% endif %}"
+                         data-examiner="{{ key }}" onclick="switchExaminer('{{ key }}')">
+                        <img src="{{ url_for('static', filename='examiners/' + ex.file) }}" alt="{{ ex.name }}">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="control-card">
+                <div class="control-icon">🚪</div>
+                <div class="control-label" data-lang="exit_panel">退出模拟</div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-danger btn-sm w-100">Exit</a>
+            </div>
+        </div>
+
+        <!-- 中央区 -->
+        <div class="exam-main">
+            <!-- 考前：考官展示 -->
+            <div id="examinerDisplay" class="examiner-display">
+                <div class="examiner-photo-wrapper">
+                    <img id="examinerPhoto" src="{{ url_for('static', filename='examiners/kobe.png') }}" alt="Examiner">
+                </div>
+                <h3 id="examinerName" class="examiner-name">Kobe</h3>
+                <p id="examinerBio" class="examiner-title">前NBA湖人队巨星，"黑曼巴"。从地狱杀回来了。</p>
+            </div>
+
+            <!-- 考中：对话区 -->
+            <div id="chatArea" class="chat-area" style="display:none;">
+                <div id="chatMessages" class="chat-messages"></div>
+            </div>
+
+            <!-- 底部操作 -->
+            <div class="exam-actions">
+                <div id="startSection">
+                    <button id="startBtn" class="btn btn-primary btn-lg start-exam-btn" onclick="startExam()" data-lang="start_btn">
+                        我已准备好，开始模拟 🎙️
+                    </button>
+                </div>
+                <div id="inputSection" style="display:none;">
+                    <div class="exam-input-row">
+                        <button class="btn btn-outline-warning restart-btn" onclick="restartExam()" data-lang="restart_btn">
+                            🔄 重新开始
+                        </button>
+                        <div class="input-group chat-input-group">
+                            <input type="text" id="chatInput" class="form-control" data-lang="chat_placeholder" placeholder="输入你的回答..." autocomplete="off">
+                            <button id="sendBtn" class="btn btn-primary" onclick="sendMessage()">
+                                <i class="bi bi-send"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="endExam()" title="End test" data-lang="end_btn">
+                                ⏹️ 结束考试
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 反馈弹窗 -->
+<div class="modal fade" id="feedbackModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" data-lang="feedback_title">📊 考试反馈</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="score-circle" id="scoreDisplay">--</div>
+                <p class="mt-3" id="feedbackText"></p>
+                <div class="tip-box mt-3">
+                    <strong>💡 <span data-lang="tip_label">改进建议</span>:</strong>
+                    <span id="tipText"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ─── 状态 ───
+let currentExaminer = 'kobe';
+let currentDifficulty = 'medium';
+let examHistory = [];
+let chatStreaming = false;
+let currentPart = 'part1';
+let questionCount = 1;
+let testEnded = false;
+
+const examinerInfo = {{ examiners | tojson }};
+
+// ─── 语言变化回调 ───
+function onLangChange(lang) {
+    updateStatus();
+    const input = document.getElementById('chatInput');
+    if (input) input.placeholder = t('chat_placeholder');
+    // 更新难度下拉
+    updateDiffOptions(lang);
+}
+
+function updateDiffOptions(lang) {
+    const sel = document.getElementById('difficultySelect');
+    if (!sel) return;
+    const val = sel.value;
+    for (const opt of sel.options) {
+        opt.textContent = lang === 'zh' ? opt.getAttribute('data-zh') : opt.getAttribute('data-en');
+    }
+    sel.value = val;
+}
+
+function updateDiffLabel() {}  // placeholder, actual update in onLangChange
+
+function updateStatus() {
+    const s = document.getElementById('examStatus');
+    if (!s) return;
+    if (s.className.includes('status-active')) s.textContent = t('in_progress');
+    else if (s.className.includes('status-done')) s.textContent = t('completed');
+    else s.textContent = t('ready');
+}
+
+// ─── 考官切换 ───
+function switchExaminer(key) {
+    currentExaminer = key;
+    document.querySelectorAll('.examiner-thumb').forEach(t => t.classList.remove('active'));
+    const thumb = document.querySelector(`.examiner-thumb[data-examiner="${key}"]`);
+    if (thumb) thumb.classList.add('active');
+    // 同步更新考官大图、名字和简介
+    document.getElementById('examinerPhoto').src = '/static/examiners/' + examinerInfo[key].file;
+    document.getElementById('examinerName').textContent = examinerInfo[key].name;
+    document.getElementById('examinerBio').textContent = examinerInfo[key].bio || '';
+}
+
+// ─── 进度条 ───
+function updateProgressUI() {
+    document.querySelectorAll('.progress-step').forEach(s => {
+        s.classList.remove('active', 'done');
+        const p = parseInt(s.dataset.part);
+        const cp = currentPart === 'part1' ? 1 : currentPart === 'part2' ? 2 : 3;
+        if (p < cp) s.classList.add('done');
+        if (p === cp) s.classList.add('active');
+    });
+}
+
+// ─── 开始考试 ───
+function startExam() {
+    currentDifficulty = document.getElementById('difficultySelect').value;
+    examHistory = [];
+    currentPart = 'part1';
+    questionCount = 1;
+    testEnded = false;
+
+    document.getElementById('controlPanel').style.display = 'none';
+    document.getElementById('examinerDisplay').style.display = 'none';
+    document.getElementById('startSection').style.display = 'none';
+    document.getElementById('chatArea').style.display = 'flex';
+    document.getElementById('inputSection').style.display = 'block';
+
+    document.getElementById('examStatus').textContent = t('in_progress');
+    document.getElementById('examStatus').className = 'exam-status status-active';
+    document.getElementById('chatInput').placeholder = t('chat_placeholder');
+
+    updateProgressUI();
+    addBubble('assistant', '');
+    streamAI('Hello, I am ready for the speaking test.', []);
+}
+
+// ─── AI 流式 ───
+async function streamAI(message, history) {
+    chatStreaming = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('chatInput').disabled = true;
+
+    const bubbles = document.querySelectorAll('#chatMessages .message.assistant .message-content');
+    const aiBubble = bubbles[bubbles.length - 1];
+    let fullText = '';
+
+    try {
+        const resp = await fetch('/api/exam/stream', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                difficulty: currentDifficulty,
+                examiner: currentExaminer,
+                message: message,
+                history: history,
+                currentPart: currentPart,
+                questionCount: questionCount
+            })
+        });
+
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+            const {done, value} = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, {stream: true});
+            const parts = buffer.split('\n\n');
+            buffer = parts.pop();
+            for (const part of parts) {
+                const lines = part.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const d = JSON.parse(line.slice(6));
+                            if (d.token) {
+                                fullText = d.full;
+                                if (aiBubble) aiBubble.innerHTML = formatText(fullText);
+                            }
+                        } catch(e) {}
+                    }
+                }
+            }
+            scrollChat();
+        }
+    } catch (e) {
+        if (aiBubble && !fullText) aiBubble.innerHTML = '<span class="text-danger">Connection error.</span>';
+    } finally {
+        chatStreaming = false;
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('chatInput').disabled = false;
+        document.getElementById('chatInput').focus();
+
+        if (fullText) {
+            examHistory.push({role: 'assistant', content: fullText});
+            detectPartChange(fullText);
+
+            if (fullText.includes('[SCORE_READY]')) {
+                const clean = fullText.replace('[SCORE_READY]', '').trim();
+                examHistory[examHistory.length - 1].content = clean;
+                if (aiBubble) aiBubble.innerHTML = formatText(clean);
+                setTimeout(() => autoEndExam(), 1500);
+            }
+        }
+    }
+}
+
+function detectPartChange(text) {
+    if (text.toLowerCase().includes('move on to part 2') && currentPart === 'part1') {
+        currentPart = 'part2'; questionCount = 1; updateProgressUI();
+    } else if (text.toLowerCase().includes('move on to part 3') && currentPart === 'part2') {
+        currentPart = 'part3'; questionCount = 1; updateProgressUI();
+    }
+}
+
+async function autoEndExam() {
+    testEnded = true;
+    document.getElementById('examStatus').textContent = t('generating');
+    document.getElementById('examStatus').className = 'exam-status status-active';
+
+    try {
+        const resp = await fetch('/api/exam/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({difficulty: currentDifficulty, history: examHistory})
+        });
+        const data = await resp.json();
+        document.getElementById('scoreDisplay').textContent = data.score || '?';
+        document.getElementById('feedbackText').textContent = data.feedback || '';
+        document.getElementById('tipText').textContent = data.tip || '';
+        new bootstrap.Modal(document.getElementById('feedbackModal')).show();
+
+        document.getElementById('examStatus').textContent = t('completed');
+        document.getElementById('examStatus').className = 'exam-status status-done';
+        document.querySelectorAll('#progressBar .progress-step').forEach(s => s.classList.add('done'));
+    } catch (e) {
+        alert('Failed to generate feedback.');
+    }
+}
+
+// ─── 发送消息 ───
+function sendMessage() {
+    if (chatStreaming || testEnded) return;
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (!message) return;
+    input.value = '';
+    examHistory.push({role: 'user', content: message});
+    addBubble('user', message);
+    addBubble('assistant', '');
+    questionCount++;
+    streamAI(message, examHistory.slice(0, -1));
+}
+
+async function endExam() {
+    if (chatStreaming || testEnded) return;
+    if (!confirm('End the test and get your feedback?')) return;
+    autoEndExam();
+}
+
+function addBubble(role, content) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'message ' + role;
+    const avatar = role === 'user' ? '😊' : '🎓';
+    div.innerHTML = '<div class="message-avatar">' + avatar + '</div><div class="message-bubble"><div class="message-content">' + formatText(content) + '</div></div>';
+    container.appendChild(div);
+    scrollChat();
+}
+
+function formatText(text) { return text.replace(/\n/g, '<br>'); }
+function scrollChat() {
+    const mc = document.getElementById('chatMessages');
+    if (mc) mc.scrollTop = mc.scrollHeight;
+}
+
+// ─── 重新开始 ───
+function restartExam() {
+    if (chatStreaming) return;
+    if (!confirm('确定要重新开始吗？当前对话将被清除。')) return;
+
+    // 重置状态
+    examHistory = [];
+    currentPart = 'part1';
+    questionCount = 1;
+    testEnded = false;
+    chatStreaming = false;
+
+    // 清空聊天
+    document.getElementById('chatMessages').innerHTML = '';
+
+    // 隐藏考试区，显示考官和面板
+    document.getElementById('chatArea').style.display = 'none';
+    document.getElementById('inputSection').style.display = 'none';
+    document.getElementById('controlPanel').style.display = 'flex';
+    document.getElementById('examinerDisplay').style.display = 'flex';
+    document.getElementById('startSection').style.display = 'block';
+
+    // 重置状态
+    document.getElementById('examStatus').textContent = t('ready');
+    document.getElementById('examStatus').className = 'exam-status status-idle';
+
+    // 重置进度条
+    document.querySelectorAll('.progress-step').forEach(s => {
+        s.classList.remove('active', 'done');
+    });
+    document.querySelector('.progress-step[data-part="1"]').classList.add('active');
+
+    // 重置考官照片
+    switchExaminer(currentExaminer);
+
+    document.getElementById('chatInput').placeholder = t('chat_placeholder');
+}
+
+// ─── 初始化 ───
+document.addEventListener('DOMContentLoaded', function() {
+    // 确保考官头像初始显示正确
+    switchExaminer(currentExaminer);
+
+    const input = document.getElementById('chatInput');
+    if (input) {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
